@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>スマブラ おまかせツール</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: sans-serif;
+    text-align: center;
+    min-height: 100vh;
+}
+
+#settings {
+    display: none;
+    background: white;
+    border-top: 2px solid #ccc;
+    padding: 10px;
+}
+
+#settings.active {
+    display: block;
+}
+
+#fighterList {
+    flex: 1;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 6px;
+    padding: 10px;
+}
+
+.fighter-item {
+    text-align: left;
+    font-size: 14px;
+}
+
+#result {
+    margin: 5px 0;
+}
+
+#result img {
+    width: min(70vw, 250px);
+    height: min(70vw, 250px);
+    object-fit: contain;
+    margin-top: 10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>スマブラ おまかせツール</h1>
+
+<div id="result">READY</div>
+
+<button id="randomBtn">おまかせ</button>
+<button id="toggleBtn">キャラ設定</button>
+
+<div id="settings">
+    <div id="fighterList"></div>
+</div>
+
+<script>
+
+// ===== データ =====
+const fighters = [
+  { name: "マリオ", img: "images/mario.png" },
+  { name: "ドンキーコング", img: "images/donkey_kong.png" },
+  { name: "リンク", img: "images/link.png" },
+  { name: "サムス", img: "images/samus.png" },
+  { name: "ダークサムス", img: "images5/dark_samus.png" },
+  { name: "ヨッシー", img: "images/yoshi.png" },
+  { name: "カービィ", img: "images/kirby.png" },
+  { name: "フォックス", img: "images/fox.png" },
+  { name: "ピカチュウ", img: "images/pikachu.png" },
+  { name: "ルイージ", img: "images/luigi.png" },
+  { name: "ネス", img: "images/ness.png" },
+  { name: "キャプテン・ファルコン", img: "images/captain_falcon.png" },
+  { name: "プリン", img: "images/jigglypuff.png" },
+  { name: "ピーチ", img: "images2/peach.png" },
+  { name: "デイジー", img: "images5/daisy.png" },
+  { name: "クッパ", img: "images2/bowser.png" },
+  { name: "アイスクライマー", img: "images2/ice_climbers.png" },
+  { name: "シーク", img: "images2/sheik.png" },
+  { name: "ゼルダ", img: "images2/zelda.png" },
+  { name: "ドクターマリオ", img: "images2/dr_mario.png" },
+  { name: "ピチュー", img: "images2/pichu.png" },
+  { name: "ファルコ", img: "images2/falco.png" },
+  { name: "マルス", img: "images2/marth.png" },
+  { name: "ルキナ", img: "images4/lucina.png" },
+  { name: "こどもリンク", img: "images2/young_link.png" },
+  { name: "ガノンドロフ", img: "images2/ganondorf.png" },
+  { name: "ミュウツー", img: "images2/mewtwo.png" },
+  { name: "ロイ", img: "images2/roy.png" },
+  { name: "クロム", img: "images5/chrom.png" },
+  { name: "Mr.ゲーム&ウォッチ", img: "images2/mr_game_watch.png" },
+  { name: "メタナイト", img: "images3/meta_knight.png" },
+  { name: "ピット", img: "images3/pit.png" },
+  { name: "ブラックピット", img: "images4/dark_pit.png" },
+  { name: "ゼロスーツサムス", img: "images3/zero_suit_samus.png" },
+  { name: "ワリオ", img: "images3/wario.png" },
+  { name: "スネーク", img: "images3/snake.png" },
+  { name: "アイク", img: "images3/ike.png" },
+  { name: "ポケモントレーナー", img: "images3/pokemon_trainer.png" },
+  { name: "ディディーコング", img: "images3/diddy_kong.png" },
+  { name: "リュカ", img: "images3/lucas.png" },
+  { name: "ソニック", img: "images3/sonic.png" },
+  { name: "デデデ", img: "images3/king_dedede.png" },
+  { name: "ピクミン&オリマー", img: "images3/olimar.png" },
+  { name: "ルカリオ", img: "images3/lucario.png" },
+  { name: "ロボット", img: "images3/r_o_b.png" },
+  { name: "トゥーンリンク", img: "images3/toon_link.png" },
+  { name: "ウルフ", img: "images3/wolf.png" },
+  { name: "むらびと", img: "images4/villager.png" },
+  { name: "ロックマン", img: "images4/mega_man.png" },
+  { name: "Wii Fit トレーナー", img: "images4/wii_fit_trainer.png" },
+  { name: "ロゼッタ&チコ", img: "images4/rosalina_luma.png" },
+  { name: "リトル・マック", img: "images4/little_mac.png" },
+  { name: "ゲッコウガ", img: "images4/greninja.png" },
+  { name: "パルテナ", img: "images4/palutena.png" },
+  { name: "パックマン", img: "images4/pac_man.png" },
+  { name: "ルフレ", img: "images4/robin.png" },
+  { name: "シュルク", img: "images4/shulk.png" },
+  { name: "クッパJr.", img: "images4/bowser_jr.png" },
+  { name: "ダックハント", img: "images4/duck_hunt.png" },
+  { name: "リュウ", img: "images4/ryu.png" },
+  { name: "ケン", img: "images5/ken.png" },
+  { name: "クラウド", img: "images4/cloud.png" },
+  { name: "カムイ", img: "images4/corrin.png" },
+  { name: "ベヨネッタ", img: "images4/bayonetta.png" },
+  { name: "インクリング", img: "images5/inkling.png" },
+  { name: "リドリー", img: "images5/ridley.png" },
+  { name: "シモン", img: "images5/simon.png" },
+  { name: "リヒター", img: "images5/richter.png" },
+  { name: "キングクルール", img: "images5/king_k_rool.png" },
+  { name: "しずえ", img: "images5/isabelle.png" },
+  { name: "ガオガエン", img: "images5/incineroar.png" },
+  { name: "パックンフラワー", img: "images5/piranha_plant.png" },
+  { name: "ジョーカー", img: "images5/joker.png" },
+  { name: "勇者", img: "images5/hero.png" },
+  { name: "バンジョー&カズーイ", img: "images5/banjo_kazooie.png" },
+  { name: "テリー", img: "images5/terry.png" },
+  { name: "ベレト/ベレス", img: "images5/byleth.png" },
+  { name: "ミェンミェン", img: "images5/minmin.png" },
+  { name: "スティーブ", img: "images5/steve.png" },
+  { name: "セフィロス", img: "images5/sephiroth.png" },
+  { name: "ホムラ/ヒカリ", img: "images5/pyra_mythra.png" },
+  { name: "カズヤ", img: "images5/kazuya.png" },
+  { name: "ソラ", img: "images5/sora.png" },
+  { name: "格闘Mii", img: "images4/brawler.png" },
+  { name: "剣術Mii", img: "images4/swordfighter.png" },
+  { name: "射撃Mii", img: "images4/gunner.png" }
+];
+
+const fighterListDiv = document.getElementById("fighterList");
+const settingsDiv = document.getElementById("settings");
+
+
+// ===== チェックボックス生成 =====
+function createCheckboxes() {
+    const savedData = JSON.parse(localStorage.getItem("fighterSelection"));
+
+        fighters.forEach(fighter => {
+        const label = document.createElement("label");
+        label.className = "fighter-item";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+       checkbox.value = fighter.name;
+
+        if (savedData) {
+            checkbox.checked = savedData.includes(fighter.name);
+        } else {
+            checkbox.checked = true;
+        }
+
+        checkbox.addEventListener("change", saveSelection);
+
+        label.appendChild(checkbox);
+       label.appendChild(document.createTextNode(" " + fighter.name));
+        fighterListDiv.appendChild(label);
+    });
+}
+
+// ===== 保存 =====
+function saveSelection() {
+    const selected = getSelectedFighters();
+    localStorage.setItem("fighterSelection", JSON.stringify(selected));
+}
+
+// ===== 取得 =====
+function getSelectedFighters() {
+    const checked = document.querySelectorAll("#fighterList input:checked");
+    return Array.from(checked).map(cb => cb.value);
+}
+
+// ===== ランダム取得 =====
+function getRandomElement(array) {
+    const index = Math.floor(Math.random() * array.length);
+    return array[index];
+}
+
+// ===== 表示処理 =====
+function displayResult() {
+    const selected = getSelectedFighters();
+
+    if (selected.length === 0) {
+        document.getElementById("result").textContent = "キャラを選んでください";
+        return;
+    }
+
+    const characterName = getRandomElement(selected);
+
+    const fighter = fighters.find(f => f.name === characterName);
+
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML = `
+        <div>${fighter.name}</div>
+        <img src="${fighter.img}">
+    `;
+}
+
+// ===== 設定開閉 =====
+function toggleSettings() {
+    settingsDiv.classList.toggle("active");
+}
+
+document.getElementById("randomBtn")
+    .addEventListener("click", displayResult);
+
+document.getElementById("toggleBtn")
+    .addEventListener("click", toggleSettings);
+
+createCheckboxes();
+
+</script>
+
+</body>
+</html>
